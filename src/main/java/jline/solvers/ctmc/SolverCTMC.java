@@ -360,6 +360,7 @@ public class SolverCTMC {
             }
             rateMatrix[i][i]= -sum;
         }
+        System.out.println("\nRate Matrix");
 
         for(int i = 0; i<size;i++){
             for(int j=0;j<size;j++){
@@ -372,7 +373,7 @@ public class SolverCTMC {
         rateLineMatrix.array2DtoJLineMatrix(rateMatrix);
 
         JLineMatrix piVector = CTMC.ctmc_solve(rateLineMatrix);
-
+        System.out.println("\nProbability Vector");
         piVector.print();
 
         double[][] U = piVector.toArray2D();

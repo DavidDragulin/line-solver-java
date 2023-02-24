@@ -1,5 +1,6 @@
 package jline.examples;
 
+import jline.lang.distributions.APH;
 import jline.lang.nodes.*;
 import jline.solvers.ctmc.SolverCTMC;
 import jline.lang.nodes.Delay;
@@ -19,6 +20,8 @@ import jline.lang.nodes.Sink;
 import jline.lang.nodes.Source;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GettingStarted {
     public static void main(String[] args) {
@@ -26,7 +29,7 @@ public class GettingStarted {
         Network model = GettingStarted.matlabExample3();
         SolverCTMC solverSSA = new SolverCTMC();
         solverSSA.compile(model);
-        solverSSA.setOptions().samples(20000).seed(9);
+                solverSSA.setOptions().samples(20000).seed(9);
         //solverSSA.setOptions().R5(17);
         // Uncomment below to test Tau Leaping
         /*solverSSA.setOptions().configureTauLeap(new TauLeapingType(
@@ -183,10 +186,10 @@ public class GettingStarted {
     public static Network matlabExample3(){
         Network model = new Network("MRP");
         Delay delay = new Delay(model, "Working State");
-        Queue queue = new Queue(model, "RepairQueue", SchedStrategy.PS);
-        queue.setNumberOfServers(1);
+        Queue queue = new Queue(model, "RepairQueue", SchedStrategy.FCFS);
+        queue.setNumberOfServers(2);
 
-        ClosedClass closedClass = new ClosedClass(model, "ClosedClass", 3, delay);
+        ClosedClass closedClass = new ClosedClass(model, "Machines", 3, delay);
         delay.setService(closedClass, new Exp(0.5));
         queue.setService(closedClass, new Exp(4.0));
         model.link(model.serialRouting(delay, queue));
@@ -312,5 +315,90 @@ public class GettingStarted {
         model.link(routingMatrix);
 
         return model;
+    }
+
+    public static Network aphExample() {
+        Network model = new Network("myModel");
+
+        // Block 1: nodes
+        Queue node1 = new Queue(model, "queue1", SchedStrategy.FCFS);
+        node1.setNumberOfServers(12);
+        Queue node2 = new Queue(model, "queue2", SchedStrategy.FCFS);
+        node2.setNumberOfServers(40);
+        Delay node3 = new Delay(model, "delay1");
+        Delay node4 = new Delay(model, "delay2");
+        Delay node5 = new Delay(model, "delay3");
+        Delay node6 = new Delay(model, "delay4");
+        Delay node7 = new Delay(model, "delay5");
+        Delay node8 = new Delay(model, "delay6");
+        Delay node9 = new Delay(model, "delay7");
+        Delay node10 = new Delay(model, "delay8");
+        Delay node11 = new Delay(model, "delay9");
+        Delay node12 = new Delay(model, "delay10");
+        JLineMatrix identity = new JLineMatrix(1, 1);
+        identity.set(0,0,1);
+//        ClassSwitch node13 = new ClassSwitch(model, "cs_queue2_delay9", matrixToHashMap(identity), identity); // Class switching is embedded in the routing matrix P
+//        ClassSwitch node14 = new ClassSwitch(model, "cs_delay1_queue1", 1); // Class switching is embedded in the routing matrix P
+//        ClassSwitch node15 = new ClassSwitch(model, "cs_delay2_delay5",1); // Class switching is embedded in the routing matrix P
+//        ClassSwitch node16 = new ClassSwitch(model, "cs_delay3_delay2", eye(1)); // Class switching is embedded in the routing matrix P
+//        ClassSwitch node17 = new ClassSwitch(model, "cs_delay5_delay8", eye(1)); // Class switching is embedded in the routing matrix P
+//        ClassSwitch node18 = new ClassSwitch(model, "cs_delay6_delay5", eye(1)); // Class switching is embedded in the routing matrix P
+//        ClassSwitch node19 = new ClassSwitch(model, "cs_delay7_delay8", eye(1)); // Class switching is embedded in the routing matrix P
+//        ClassSwitch node20 = new ClassSwitch(model, "cs_delay9_queue1", eye(1)); // Class switching is embedded in the routing matrix P
+//        ClassSwitch node21 = new ClassSwitch(model, "cs_delay9_delay4", eye(1)); // Class switching is embedded in the routing matrix P
+//        ClassSwitch node22 = new ClassSwitch(model, "cs_delay10_delay3", eye(1)); // Class switching is embedded in the routing matrix P
+
+        //Block 2: classes
+        ClosedClass jobclass1 = new ClosedClass(model, "CClass1", 20, node8, 0);
+
+        node1.setService(jobclass1, Exp.fitMean(64.000000)); // (queue1,CClass1)
+        node2.setService(jobclass1, Exp.fitMean(0.015625)); // (queue2,CClass1)
+        node3.setService(jobclass1, APH.fitMeanAndSCV(1.000000,16.000000)); // (delay1,CClass1)
+        node4.setService(jobclass1, APH.fitMeanAndSCV(2.000000,32.000000)); // (delay2,CClass1)
+        node5.setService(jobclass1, APH.fitMeanAndSCV(0.015625,2.000000)); // (delay3,CClass1)
+        node6.setService(jobclass1, APH.fitMeanAndSCV(1.000000,0.500000)); // (delay4,CClass1)
+        node7.setService(jobclass1, new Erlang(128.000000,64)); // (delay5,CClass1)
+        node8.setService(jobclass1, APH.fitMeanAndSCV(0.125000,4.000000)); // (delay6,CClass1)
+        node9.setService(jobclass1, Exp.fitMean(0.031250)); // (delay7,CClass1)
+        node10.setService(jobclass1, Exp.fitMean(0.250000)); // (delay8,CClass1)
+        node11.setService(jobclass1, APH.fitMeanAndSCV(0.031250,4.000000)); // (delay9,CClass1)
+        node12.setService(jobclass1, APH.fitMeanAndSCV(16.000000,16.000000)); // (delay10,CClass1)
+
+//        // Block 3: topology
+//        P = model.initRoutingMatrix(); % initialize routing matrix
+//        P{1,1}(1,7) = 1; % (queue1,CClass1) -> (delay5,CClass1)
+//        P{1,1}(2,9) = 5.000000e-01; % (queue2,CClass1) -> (delay7,CClass1)
+//        P{1,1}(2,13) = 5.000000e-01; % (queue2,CClass1) -> (cs_queue2_delay9,CClass1)
+//        P{1,1}(3,14) = 1; % (delay1,CClass1) -> (cs_delay1_queue1,CClass1)
+//        P{1,1}(4,15) = 1; % (delay2,CClass1) -> (cs_delay2_delay5,CClass1)
+//        P{1,1}(5,3) = 5.000000e-01; % (delay3,CClass1) -> (delay1,CClass1)
+//        P{1,1}(5,16) = 5.000000e-01; % (delay3,CClass1) -> (cs_delay3_delay2,CClass1)
+//        P{1,1}(6,1) = 1; % (delay4,CClass1) -> (queue1,CClass1)
+//        P{1,1}(7,8) = 5.000000e-01; % (delay5,CClass1) -> (delay6,CClass1)
+//        P{1,1}(7,17) = 5.000000e-01; % (delay5,CClass1) -> (cs_delay5_delay8,CClass1)
+//        P{1,1}(8,18) = 1; % (delay6,CClass1) -> (cs_delay6_delay5,CClass1)
+//        P{1,1}(9,19) = 1; % (delay7,CClass1) -> (cs_delay7_delay8,CClass1)
+//        P{1,1}(10,2) = 8.480000e-01; % (delay8,CClass1) -> (queue2,CClass1)
+//        P{1,1}(10,12) = 1.520000e-01; % (delay8,CClass1) -> (delay10,CClass1)
+//        P{1,1}(11,20) = 5.000000e-01; % (delay9,CClass1) -> (cs_delay9_queue1,CClass1)
+//        P{1,1}(11,21) = 5.000000e-01; % (delay9,CClass1) -> (cs_delay9_delay4,CClass1)
+//        P{1,1}(12,22) = 1; % (delay10,CClass1) -> (cs_delay10_delay3,CClass1)
+//        P{1,1}(13,11) = 1; % (cs_queue2_delay9,CClass1) -> (delay9,CClass1)
+//        P{1,1}(14,1) = 1; % (cs_delay1_queue1,CClass1) -> (queue1,CClass1)
+//        P{1,1}(15,7) = 1; % (cs_delay2_delay5,CClass1) -> (delay5,CClass1)
+//        P{1,1}(16,4) = 1; % (cs_delay3_delay2,CClass1) -> (delay2,CClass1)
+//        P{1,1}(17,10) = 1; % (cs_delay5_delay8,CClass1) -> (delay8,CClass1)
+//        P{1,1}(18,7) = 1; % (cs_delay6_delay5,CClass1) -> (delay5,CClass1)
+//        P{1,1}(19,10) = 1; % (cs_delay7_delay8,CClass1) -> (delay8,CClass1)
+//        P{1,1}(20,1) = 1; % (cs_delay9_queue1,CClass1) -> (queue1,CClass1)
+//        P{1,1}(21,6) = 1; % (cs_delay9_delay4,CClass1) -> (delay4,CClass1)
+//        P{1,1}(22,5) = 1; % (cs_delay10_delay3,CClass1) -> (delay3,CClass1)
+//        model.link(P);
+//        jmodel = LINE2JLINE(model);
+//        jsolver = JLINE.SolverSSA(jmodel);
+//        jsolver.solve()
+//                % ssaAvgTable = SolverSSA(model,'samples',1000,'seed',1,'verbose',true).getAvgTable
+
+    return null;
     }
 }

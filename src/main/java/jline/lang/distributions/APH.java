@@ -1,5 +1,6 @@
 package jline.lang.distributions;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,10 +11,49 @@ import jline.lang.JLineMatrix;
 public class APH extends MarkovianDistribution{
 
 	public APH(List<Double> p, JLineMatrix generator) {
-        super("APH", 1);
+        super("APH", 2);
 		
-        this.setParam(1, "p", p);
-        this.setParam(2, "generator", generator);
+        this.setParam(1, "alpha", p);
+        this.setParam(2, "t", generator);
+	}
+
+	public static APH fitMeanAndSCV(double mean, double scv) {
+		List<Double> list = new ArrayList<>();
+		JLineMatrix matrix = new JLineMatrix(1,1);
+		list.add(1.0);
+		matrix.set(0, 0,  1);
+		APH distribution = new APH(list, matrix);
+		distribution.updateMeanAndSCV(mean, scv);
+		// TODO: finish function
+		return null;
+	}
+
+	private void updateMeanAndSCV(double mean, double scv) {
+		double e1 = mean;
+		double e2 = (1+scv)*(e1*e1);
+
+	}
+
+	public static double[] APHFrom2Moments(double[] moms) {
+		double cv2 = moms[1] / Math.pow(moms[0], 2) - 1.0;
+		double lambda = 1.0 / moms[0];
+		int N = Math.max((int) Math.ceil(1.0 / cv2), 2);
+		double p = 1.0 / (cv2 + 1.0 + (cv2 - 1.0) / (N - 1));
+		double[][] A = new double[N][N];
+		double[] ans = new double[2];
+		for (int i = 0; i < N; i++) {
+			A[i][i] = -lambda * p * N;
+			if (i < N - 1) {
+				A[i][i + 1] = A[i][i];
+				A[i + 1][i] = -A[i][i];
+			}
+		}
+		A[N - 1][N - 1] = -lambda * N;
+		double[] alpha = new double[N];
+		alpha[0] = p;
+		alpha[N - 1] = 1.0 - p;
+		return null;
+		// return new double[] {alpha, A};
 	}
 
 	@Override

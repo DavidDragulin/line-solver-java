@@ -120,10 +120,10 @@ public class SolverSSA {
 
         }
 
-        //System.out.format("Solver finished. %d samples in %f time\n", samplesCollected, curTime);
+        System.out.format("Solver finished. %d samples in %f time\n", samplesCollected, curTime);
 
         timeline.taper(curTime);
-        //timeline.printSummary(this.network);
+        timeline.printSummary(this.network);
 
         return timeline;
     }
