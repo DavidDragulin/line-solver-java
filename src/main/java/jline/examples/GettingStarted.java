@@ -26,10 +26,10 @@ import java.util.Map;
 public class GettingStarted {
     public static void main(String[] args) {
         long startTime = System.nanoTime();
-        Network model = GettingStarted.matlabExample3();
+        Network model = GettingStarted.aphExample2();
         SolverCTMC solverSSA = new SolverCTMC();
         solverSSA.compile(model);
-                solverSSA.setOptions().samples(20000).seed(9);
+        solverSSA.setOptions().samples(20000).seed(9);
         //solverSSA.setOptions().R5(17);
         // Uncomment below to test Tau Leaping
         /*solverSSA.setOptions().configureTauLeap(new TauLeapingType(
@@ -317,7 +317,7 @@ public class GettingStarted {
         return model;
     }
 
-    public static Network aphExample() {
+    public static Network aphExample1() {
         Network model = new Network("myModel");
 
         // Block 1: nodes
@@ -400,5 +400,19 @@ public class GettingStarted {
 //                % ssaAvgTable = SolverSSA(model,'samples',1000,'seed',1,'verbose',true).getAvgTable
 
     return null;
+    }
+
+    public static Network aphExample2() {
+        Network model = new Network("M/APH/1");
+        Source source = new Source(model, "mySource");
+        Queue queue = new Queue(model, "myQueue", SchedStrategy.FCFS);
+        Sink sink = new Sink(model, "mySink");
+        OpenClass oclass = new OpenClass(model, "myClass");
+
+        source.setArrival(oclass, new Exp(1));
+        queue.setService(oclass, APH.fitMeanAndSCV(1,4));
+
+        model.link(model.serialRouting(source,queue,sink));
+        return model;
     }
 }

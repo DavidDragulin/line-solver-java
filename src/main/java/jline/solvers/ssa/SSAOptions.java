@@ -41,6 +41,7 @@ public class SSAOptions {
         this.timeout = Double.POSITIVE_INFINITY;
         this.timeInterval = new Interval(0, Double.POSITIVE_INFINITY);
         cutoff = Double.POSITIVE_INFINITY;
+//        cutoff = 2.0;
         cutoffMatrix = new HashMap<Node, Map<JobClass, Double>>();
 
         this.tauLeapingType = null;
